@@ -14,7 +14,8 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-xs-12">
-                <input type="button" id="takePhoto" value="Take" class="btn">
+                <input type="button" id="takePhoto" value="Take" class="btn"><br>
+                <img src="" id="newPhoto">
             </div>
         </div>
     </div>
@@ -43,6 +44,7 @@
             
             socket.on('new-photo', function(data){
                 console.log("new photo", data);
+                $('#newPhoto').src("data:image/png;base64," + data.data);
             });
         });
         
