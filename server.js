@@ -14,11 +14,11 @@ io.on('connection', function (socket) {
     console.log('A connection was made');
     
     // Relay different messages to all clients
-    socket.on('new-data', function(msg){
-        io.emit('new-data', msg);
+    socket.on('take-photo', function(msg){
+        io.emit('take-photo', msg);
     });
-    socket.on('display-msg', function(msg){
-        io.emit('display-msg', msg);
+    socket.on('new-photo', function(msg){
+        io.emit('new-photo', msg);
     });
     
     io.emit('client-count', io.engine.clientsCount);
