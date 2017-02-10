@@ -15,9 +15,11 @@ io.on('connection', function (socket) {
     
     // Relay different messages to all clients
     socket.on('take-photo', function(msg){
+        console.log("Take a new photo");
         io.emit('take-photo', msg);
     });
     socket.on('new-photo', function(msg){
+        console.log("New photo data");
         io.emit('new-photo', msg);
     });
     
