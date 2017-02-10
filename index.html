@@ -44,7 +44,7 @@
             
             socket.on('new-photo', function(data){
                 console.log("new photo", data);
-                $('#newPhoto').src("data:image/png;base64," + data.data);
+                $('#newPhoto').attr("src", "data:image/png;base64," + data.data);
             });
         });
         
