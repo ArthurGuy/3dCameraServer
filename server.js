@@ -21,6 +21,10 @@ io.on('connection', function (socket) {
     socket.on('new-photo', function(msg){
         console.log("New photo data");
         io.emit('new-photo', msg);
+
+        // save the photo data to the file system
+        // msg.data
+
     });
     
     io.emit('client-count', io.engine.clientsCount);

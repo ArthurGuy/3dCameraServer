@@ -41,6 +41,11 @@
                 <img src="http://placehold.it/640x480" id="newPhoto" class="thumbnail">
             </div>
         </div>
+        <div class="row">
+            <div class="col-xs-12">
+                Connected Cameras: <span id="cameraCount"></span>
+            </div>
+        </div>
     </div>
 
 
@@ -54,8 +59,8 @@
         var socket = io();
 
         socket.on('client-count', function(data){
-            console.log("Clients: ", data);
-            $('#connectedUserCount').text(data);
+            console.log("Cameras: ", data);
+            $('#cameraCount').text(data - 1);
         });
 
         $(document).ready(function() {
