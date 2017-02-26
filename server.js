@@ -1,4 +1,5 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 
 var server = require('http').Server(app);
 
@@ -13,6 +14,22 @@ server.listen(3000);
 app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
 });
+app.get('/css/bootstrap.min.css', function (request, response) {
+    response.sendFile(__dirname + '/css/bootstrap.min.css');
+});
+app.get('/js/bootstrap.min.js', function (request, response) {
+    response.sendFile(__dirname + '/js/bootstrap.min.js');
+});
+app.get('/js/jquery-3.1.1.slim.min.js', function (request, response) {
+    response.sendFile(__dirname + '/js/jquery-3.1.1.slim.min.js');
+});
+app.get('/js/socket.io-1.4.5.js', function (request, response) {
+    response.sendFile(__dirname + '/js/socket.io-1.4.5.js');
+});
+
+// app.listen(3000, function () {
+//   console.log('3D Camera app listening on port 3000!')
+// })
 
 io.on('connection', function (socket) {
     console.log('A connection was made', socket.id);
@@ -55,8 +72,11 @@ io.on('connection', function (socket) {
 
         // Where is the image to be saved
         let folderName = getFolderName(msg.startTime);
+        let imagePath  = folderName + '/' + guid() + '.jpg';
+        fs.writeFile(imagePath, new Buffer(msg.data, 'base64'));
 
-        fs.writeFile(folderName + '/' + guid() + '.jpg', new Buffer(msg.data, 'base64'));
+        msg.cameraName = cameras[i].name;
+        msg.imagePath  = imagePath;
 
         io.emit('new-photo', msg);
 
