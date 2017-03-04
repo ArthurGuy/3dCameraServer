@@ -9,27 +9,20 @@ var fs = require('fs');
 
 var cameras = [];
 
+// Let the server listen on port 3000 for the websocket connection
 server.listen(3000);
 
 app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
 });
-app.get('/css/bootstrap.min.css', function (request, response) {
-    response.sendFile(__dirname + '/css/bootstrap.min.css');
-});
-app.get('/js/bootstrap.min.js', function (request, response) {
-    response.sendFile(__dirname + '/js/bootstrap.min.js');
-});
-app.get('/js/jquery-3.1.1.slim.min.js', function (request, response) {
-    response.sendFile(__dirname + '/js/jquery-3.1.1.slim.min.js');
-});
-app.get('/js/socket.io-1.4.5.js', function (request, response) {
-    response.sendFile(__dirname + '/js/socket.io-1.4.5.js');
-});
 
-// app.listen(3000, function () {
-//   console.log('3D Camera app listening on port 3000!')
-// })
+app.use(express.static('static'));
+app.use(express.static('images'));
+
+// Setup on port 8080 as well for the web app
+app.listen(8080, function () {
+  console.log('3D Camera app listening on port 8080 and 3000')
+})
 
 io.on('connection', function (socket) {
     console.log('A connection was made', socket.id);
@@ -38,10 +31,11 @@ io.on('connection', function (socket) {
 
     socket.on('camera-online', function(msg){
 
-        // Update our cache with the full details
+        // Update our cache
         var i = findCameraIndex(socket.id);
-        cameras[i].name = msg.name;
-        cameras[i].ipAddress = msg.ipAddress;
+        cameras[i].name        = msg.name;
+        cameras[i].ipAddress   = msg.ipAddress;
+        cameras[i].lastCheckin = new Date();
 
         io.emit('camera-update', cameras);
     });
@@ -63,12 +57,18 @@ io.on('connection', function (socket) {
 
         fs.mkdirSync(folderName);
         io.emit('take-photo', msg);
+
+        for (let i = 0; i < cameras.length; i++) {
+            cameras[i].waitingOnPhoto = true;
+        }
+
     });
 
     socket.on('new-photo', function(msg){
         console.log("New photo data");
         var i = findCameraIndex(socket.id);
         cameras[i].photoError = false;
+        cameras[i].waitingOnPhoto = false;
 
         // Where is the image to be saved
         let folderName = getFolderName(msg.startTime);
@@ -80,15 +80,13 @@ io.on('connection', function (socket) {
 
         io.emit('new-photo', msg);
 
-        // save the photo data to the file system
-        // msg.data
-
     });
 
 
     socket.on('photo-error', function(msg){
         var i = findCameraIndex(socket.id);
         cameras[i].photoError = true;
+        cameras[i].waitingOnPhoto = false;
         io.emit('photo-error', msg);
         io.emit('camera-update', cameras);
     });
