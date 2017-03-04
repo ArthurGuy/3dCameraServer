@@ -24,13 +24,14 @@ app.listen(8080, function () {
   console.log('3D Camera app listening on port 8080 and 3000')
 })
 
+
 // When a new camera connects set up the following
 io.on('connection', function (socket) {
     console.log('A connection was made', socket.id);
 
 
     // Add the camera to a persistent list of devices
-    cameras.push({socketId: socket.id, name: null, ipAddress: null, photoError:false});
+    cameras.push({socketId: socket.id, name: null, ipAddress: null, photoError:false, waitingOnPhoto:false, lastCheckin:null});
 
 
     // Listen for heartbeat notifications from the cameras
@@ -58,7 +59,7 @@ io.on('connection', function (socket) {
     socket.on('take-photo', function(msg){
         console.log("Take a new photo");
 
-        let folderName = getFolderName(msg.time);
+        let folderName = './images/' + getFolderName(msg.time);
 
         fs.mkdirSync(folderName);
         io.emit('take-photo', msg);
@@ -79,11 +80,13 @@ io.on('connection', function (socket) {
 
         // Where is the image to be saved
         let folderName = getFolderName(msg.startTime);
-        let imagePath  = folderName + '/' + guid() + '.jpg';
+        let fileName   = guid() + '.jpg';
+        let imagePath  = './images/' + folderName + '/' + fileName;
         fs.writeFile(imagePath, new Buffer(msg.data, 'base64'));
 
+        msg.data       = null;
         msg.cameraName = cameras[i].name;
-        msg.imagePath  = imagePath;
+        msg.imagePath  = folderName + '/' + fileName;
 
         io.emit('new-photo', msg);
 
@@ -121,7 +124,7 @@ function getFolderName(time) {
     let hour = ("0" + (date.getHours() + 1)).slice(-2);
     let minute = ("0" + (date.getMinutes() + 1)).slice(-2);
     let seconds = ("0" + (date.getSeconds() + 1)).slice(-2);
-    return './images/' + date.getFullYear() + month + dayOfWeek + hour + minute + seconds;
+    return date.getFullYear() + month + dayOfWeek + hour + minute + seconds;
     //return './images/' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '-' + date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear();
 }
 

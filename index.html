@@ -82,10 +82,7 @@
             });
 
             socket.on('new-photo', function(data){
-                //console.log("new photo", data);
-                $('#photoGrid').append('<div class="col-xs-3"><img src="data:image/png;base64,' + data.data + '" class="thumbnail"><br>' + data.cameraName + '</div>');
-
-                $('#photoGrid').append('<div class="col-xs-3"><img src="' + data.imagePath + '" class="thumbnail"><br>' + data.cameraName + '</div>');
+                $('#photoGrid').append('<div class="col-xs-3"><img src="/' + data.imagePath + '" class="thumbnail"><br>' + data.cameraName + '</div>');
             });
 
             socket.on('photo-error', function(response){
@@ -94,7 +91,7 @@
 
             // A camera had come online or been taken offline
             socket.on('camera-update', function(response){
-                console.log("camera update", response);
+                //console.log("camera update", response);
                 cameras = response;
 
                 displayCameraList();
@@ -113,7 +110,7 @@
                     if (cameras[i].waitingOnPhoto) {
                         waitingOnPhoto = 'yes';
                     }
-                    var timeSinceLastUpdate = Math.round((new Date() - cameras[i].lastCheckin) / 100) / 10;
+                    var timeSinceLastUpdate = Math.round((new Date() - new Date(cameras[i].lastCheckin)) / 100) / 10;
                     $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+waitingOnPhoto + '</td><td>' + timeSinceLastUpdate+'s</td><td>'+photoError+'</td></tr>');
                 }
 
