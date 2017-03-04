@@ -24,11 +24,16 @@ app.listen(8080, function () {
   console.log('3D Camera app listening on port 8080 and 3000')
 })
 
+// When a new camera connects set up the following
 io.on('connection', function (socket) {
     console.log('A connection was made', socket.id);
+
+
+    // Add the camera to a persistent list of devices
     cameras.push({socketId: socket.id, name: null, ipAddress: null, photoError:false});
 
 
+    // Listen for heartbeat notifications from the cameras
     socket.on('camera-online', function(msg){
 
         // Update our cache
@@ -40,6 +45,7 @@ io.on('connection', function (socket) {
         io.emit('camera-update', cameras);
     });
 
+
     socket.on('disconnect', function(msg, msg2) {
         var i = findCameraIndex(socket.id);
         cameras.splice(i, 1);
@@ -48,8 +54,7 @@ io.on('connection', function (socket) {
     });
 
 
-
-    // Relay different messages to all clients
+    // When a take photo message comes in create the folder, update the cameras and pass on the take message to devices
     socket.on('take-photo', function(msg){
         console.log("Take a new photo");
 
@@ -64,6 +69,8 @@ io.on('connection', function (socket) {
 
     });
 
+
+    // When a new photo comes in save it and send it on to the client
     socket.on('new-photo', function(msg){
         console.log("New photo data");
         var i = findCameraIndex(socket.id);
@@ -83,6 +90,7 @@ io.on('connection', function (socket) {
     });
 
 
+    // There was an error taking a photo, update our data and the clients
     socket.on('photo-error', function(msg){
         var i = findCameraIndex(socket.id);
         cameras[i].photoError = true;
@@ -94,6 +102,8 @@ io.on('connection', function (socket) {
 
 });
 
+
+// Locate our local camera data based on the socket id
 function findCameraIndex(socketId) {
     for (let i = 0; i < cameras.length; i++) {
         if (cameras[i].socketId === socketId) {
@@ -102,13 +112,21 @@ function findCameraIndex(socketId) {
     }
 }
 
+
+// Generate a folder name based on the timestamp
 function getFolderName(time) {
-    //return './images/' + time;
     let date = new Date(time);
-    return './images/' + date.getFullYear() + (date.getMonth()+1) + date.getDate() + date.getHours() + date.getMinutes() + date.getSeconds();
-    return './images/' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '-' + date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear();
+    let dayOfWeek = ("0" + date.getDate()).slice(-2);
+    let month = ("0" + (date.getMonth() + 1)).slice(-2);
+    let hour = ("0" + (date.getHours() + 1)).slice(-2);
+    let minute = ("0" + (date.getMinutes() + 1)).slice(-2);
+    let seconds = ("0" + (date.getSeconds() + 1)).slice(-2);
+    return './images/' + date.getFullYear() + month + dayOfWeek + hour + minute + seconds;
+    //return './images/' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '-' + date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear();
 }
 
+
+// Generate a guid
 function guid() {
   function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
