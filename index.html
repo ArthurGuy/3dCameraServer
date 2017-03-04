@@ -46,7 +46,7 @@
                         <tr>
                             <th>Name</th>
                             <th>IP</th>
-                            <th>Waiting for photo</th>
+                            <th>Photo Status</th>
                             <th>Last Checkin</th>
                             <th>Error taking photo</th>
                         </tr>
@@ -72,6 +72,8 @@
         var cameras = [];
 
         $(document).ready(function() {
+
+            socket.emit('client-online', {});
 
             $('#takePhoto').click(function (event) {
                 takeId = guid();
@@ -100,22 +102,33 @@
 
         function displayCameraList() {
             $('#cameraList').html('');
+            let cameraCount = 0;
             for (let i = 0; i < cameras.length; i++) {
-                if (cameras[i].name !== null) {
+                if (cameras[i].type == 'camera') {
+                    cameraCount++;
                     var photoError = '';
                     if (cameras[i].photoError) {
                         photoError = 'yes';
                     }
-                    let waitingOnPhoto = 'no';
+                    let photoStatus = 'standby';
                     if (cameras[i].waitingOnPhoto) {
-                        waitingOnPhoto = 'yes';
+                        photoStatus = 'taking';
+                    }
+                    if (cameras[i].photoSending) {
+                        photoStatus = 'sending';
+                    }
+                    if (cameras[i].receivedPhoto) {
+                        photoStatus = 'received';
                     }
                     var timeSinceLastUpdate = Math.round((new Date() - new Date(cameras[i].lastCheckin)) / 100) / 10;
-                    $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+waitingOnPhoto + '</td><td>' + timeSinceLastUpdate+'s</td><td>'+photoError+'</td></tr>');
+                    if ((timeSinceLastUpdate > 10) && !cameras[i].photoSending) {
+                        timeSinceLastUpdate = '<b>' + timeSinceLastUpdate + '</b>';
+                    }
+                    $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+photoStatus + '</td><td>' + timeSinceLastUpdate+'</td><td>'+photoError+'</td></tr>');
                 }
 
             }
-            $('#cameraCount').text(cameras.length - 1);
+            $('#cameraCount').text(cameraCount);
         }
 
         function guid() {

@@ -9,6 +9,8 @@ var fs = require('fs');
 
 var cameras = [];
 
+var clientUpdateIntervalTimer;
+
 // Let the server listen on port 3000 for the websocket connection
 server.listen(3000);
 
@@ -31,7 +33,17 @@ io.on('connection', function (socket) {
 
 
     // Add the camera to a persistent list of devices
-    cameras.push({socketId: socket.id, name: null, ipAddress: null, photoError:false, waitingOnPhoto:false, lastCheckin:null});
+    cameras.push({
+        socketId: socket.id,
+        type: null,
+        name: null,
+        ipAddress: null,
+        photoError: false,
+        waitingOnPhoto: false,
+        lastCheckin: null,
+        photoSending: false,
+        receivedPhoto: false
+    });
 
 
     // Listen for heartbeat notifications from the cameras
@@ -39,6 +51,7 @@ io.on('connection', function (socket) {
 
         // Update our cache
         var i = findCameraIndex(socket.id);
+        cameras[i].type        = 'camera';
         cameras[i].name        = msg.name;
         cameras[i].ipAddress   = msg.ipAddress;
         cameras[i].lastCheckin = new Date();
@@ -47,11 +60,26 @@ io.on('connection', function (socket) {
     });
 
 
+    // Sent by the web interface
+    socket.on('client-online', function(msg){
+
+        // Update our cache
+        var i = findCameraIndex(socket.id);
+        cameras[i].type = 'client';
+
+        clientUpdateIntervalTimer = setInterval(clientUpdate, 500);
+    });
+
+
     socket.on('disconnect', function(msg, msg2) {
         var i = findCameraIndex(socket.id);
         cameras.splice(i, 1);
 
         io.emit('camera-update', cameras);
+
+        if (cameras[i] && cameras[i].type == 'type') {
+            clearInterval(clientUpdateIntervalTimer);
+        }
     });
 
 
@@ -65,9 +93,18 @@ io.on('connection', function (socket) {
         io.emit('take-photo', msg);
 
         for (let i = 0; i < cameras.length; i++) {
-            cameras[i].waitingOnPhoto = true;
+            if (cameras[i].type == 'camera') {
+                cameras[i].waitingOnPhoto = true;
+                cameras[i].receivedPhoto  = false;
+            }
         }
 
+    });
+
+
+    socket.on('sending-photo', function(msg){
+        var i = findCameraIndex(socket.id);
+        cameras[i].photoSending = true;
     });
 
 
@@ -75,8 +112,10 @@ io.on('connection', function (socket) {
     socket.on('new-photo', function(msg){
         console.log("New photo data");
         var i = findCameraIndex(socket.id);
-        cameras[i].photoError = false;
+        cameras[i].photoError     = false;
         cameras[i].waitingOnPhoto = false;
+        cameras[i].photoSending   = false;
+        cameras[i].receivedPhoto  = true;
 
         // Where is the image to be saved
         let folderName = getFolderName(msg.startTime);
@@ -96,14 +135,20 @@ io.on('connection', function (socket) {
     // There was an error taking a photo, update our data and the clients
     socket.on('photo-error', function(msg){
         var i = findCameraIndex(socket.id);
-        cameras[i].photoError = true;
+        cameras[i].photoError     = true;
         cameras[i].waitingOnPhoto = false;
+        cameras[i].photoSending   = false;
+        cameras[i].receivedPhoto  = false;
         io.emit('photo-error', msg);
         io.emit('camera-update', cameras);
     });
 
 
 });
+
+function clientUpdate() {
+    io.emit('camera-update', cameras);
+}
 
 
 // Locate our local camera data based on the socket id
