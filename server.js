@@ -42,7 +42,8 @@ io.on('connection', function (socket) {
         waitingOnPhoto: false,
         lastCheckin: null,
         photoSending: false,
-        receivedPhoto: false
+        receivedPhoto: false,
+        version: null
     });
 
 
@@ -55,8 +56,11 @@ io.on('connection', function (socket) {
         cameras[i].name        = msg.name;
         cameras[i].ipAddress   = msg.ipAddress;
         cameras[i].lastCheckin = new Date();
+        if (msg.version) {
+            cameras[i].version = msg.version;
+        }
 
-        io.emit('camera-update', cameras);
+        //io.emit('camera-update', cameras);
     });
 
 
@@ -102,6 +106,14 @@ io.on('connection', function (socket) {
     });
 
 
+    socket.on('update-software', function(msg){
+        console.log("Updating software");
+
+        io.emit('update-software', msg);
+
+    });
+
+
     socket.on('sending-photo', function(msg){
         var i = findCameraIndex(socket.id);
         cameras[i].photoSending = true;
@@ -140,7 +152,7 @@ io.on('connection', function (socket) {
         cameras[i].photoSending   = false;
         cameras[i].receivedPhoto  = false;
         io.emit('photo-error', msg);
-        io.emit('camera-update', cameras);
+        //io.emit('camera-update', cameras);
     });
 
 
