@@ -116,7 +116,7 @@ io.on('connection', function (socket) {
     socket.on('update-id', function(msg){
         console.log("Updating device id");
         
-        var i = findCameraIndex(socket.id);
+        var i = findCameraIndex(msg.socketId);
         
         // Broadcast a message but pass the ip of the camera that needs to respond
         io.emit('update-id', {ipAddress: cameras[i].ipAddress, newId: msg.id});
