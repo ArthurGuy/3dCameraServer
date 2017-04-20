@@ -114,10 +114,12 @@ io.on('connection', function (socket) {
     });
     
     socket.on('update-id', function(msg){
-        if (socket.id == msg.socketId) {
-            console.log("Updating device id");
-            io.emit('update-id', msg);
-        }
+        console.log("Updating device id");
+        
+        var i = findCameraIndex(socket.id);
+        
+        // Broadcast a message but pass the ip of the camera that needs to respond
+        io.emit('update-id', {ipAddress: cameras[i].ipAddress, newId: msg.id});
     });
 
 
