@@ -112,6 +112,12 @@ io.on('connection', function (socket) {
         io.emit('update-software', msg);
 
     });
+    
+    socket.on('update-id', function(msg){
+        console.log("Updating device id");
+
+        io.emit('update-id', msg);
+    });
 
 
     socket.on('sending-photo', function(msg){
