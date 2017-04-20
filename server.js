@@ -114,8 +114,10 @@ io.on('connection', function (socket) {
     });
     
     socket.on('update-id', function(msg){
-        console.log("Updating device id");
-        io.emit('update-id', msg);
+        if (socket.id == msg.socketId) {
+            console.log("Updating device id");
+            io.emit('update-id', msg);
+        }
     });
 
 
