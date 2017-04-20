@@ -71,7 +71,7 @@ io.on('connection', function (socket) {
         var i = findCameraIndex(socket.id);
         cameras[i].type = 'client';
 
-        clientUpdateIntervalTimer = setInterval(clientUpdate, 500);
+        clientUpdateIntervalTimer = setInterval(clientUpdate, 100);
     });
 
 
