@@ -89,6 +89,12 @@
                 event.preventDefault();
                 socket.emit('update-software', {});
             });
+            
+            $( "#cameraList .changeCameraName" ).on( "click", function(event) {
+                event.preventDefault();
+                var newName = $(this).parent().find(".newCameraName").val();
+                console.log(newName);
+            });
 
             socket.on('new-photo', function(data){
                 $('#photoGrid').append('<div class="col-xs-3"><img src="/' + data.imagePath + '" class="thumbnail"><br>' + data.cameraName + '</div>');
@@ -131,7 +137,7 @@
                     if ((timeSinceLastUpdate > 10) && !cameras[i].photoSending) {
                         timeSinceLastUpdate = '<b>' + timeSinceLastUpdate + '</b>';
                     }
-                    $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+photoStatus + '</td><td>' + timeSinceLastUpdate+'</td><td>'+photoError+'</td><td>'+cameras[i].version+'</td></tr>');
+                    $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+photoStatus + '</td><td>' + timeSinceLastUpdate+'</td><td>'+photoError+'</td><td>'+cameras[i].version+'</td><td><input type="text" class="newCameraName"><input type="submit" value="Save" class="changeCameraName"></td></tr>');
                 }
 
             }
