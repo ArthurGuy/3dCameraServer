@@ -112,14 +112,14 @@ io.on('connection', function (socket) {
         io.emit('update-software', msg);
 
     });
-    
-    socket.on('update-id', function(msg){
-        console.log("Updating device id");
-        
+
+    socket.on('update-name', function(msg){
+        console.log("Updating device name");
+
         var i = findCameraIndex(msg.socketId);
-        
+
         // Broadcast a message but pass the ip of the camera that needs to respond
-        io.emit('update-id', {ipAddress: cameras[i].ipAddress, newId: msg.id});
+        io.emit('update-name', {ipAddress: cameras[i].ipAddress, newName: msg.newName});
     });
 
 
@@ -142,13 +142,33 @@ io.on('connection', function (socket) {
         let folderName = getFolderName(msg.startTime);
         let fileName   = guid() + '.jpg';
         let imagePath  = './images/' + folderName + '/' + fileName;
-        fs.writeFile(imagePath, new Buffer(msg.data, 'base64'));
+        let thumbImagePath  = './images/' + folderName + '/thumb/' + fileName;
 
-        msg.data       = null;
+        if (!fs.existsSync('./images/' + folderName + '/thumb/')){
+            fs.mkdirSync('./images/' + folderName + '/thumb/');
+        }
+
         msg.cameraName = cameras[i].name;
         msg.imagePath  = folderName + '/' + fileName;
 
-        io.emit('new-photo', msg);
+        let imageData = new Buffer(msg.data, 'base64')
+
+        let parser = require('exif-parser').create(imageData);
+        let result = parser.parse();
+
+        fs.writeFile(imagePath, imageData, function () {
+            msg.data       = null;
+
+            if (result.hasThumbnail()) {
+                console.log("Thumbnail found");
+                fs.writeFile(thumbImagePath, result.getThumbnailBuffer(), function () {
+                    msg.thumbImagePath  = folderName + '/thumb/' + fileName;
+                    io.emit('new-photo', msg);
+                });
+            } else {
+                io.emit('new-photo', msg);
+            }
+        });
 
     });
 

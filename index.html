@@ -8,55 +8,70 @@
     <title>3D Scanner</title>
 
     <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="https://unpkg.com/vue"></script>
 
     <style>
     .thumbnail {
         width: 100%;
+        max-height: 300px;
+        max-width: 397px;
+    }
+    body {
+        padding-top: 70px;
     }
     </style>
 
 </head>
 <body>
+
+<div id="app">
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <span class="navbar-brand" href="#">
+                    3D Scanner Camera Coordinator
+                </span>
+                <input type="button" value="Take Photo" class="btn btn-success navbar-btn" v-on:click="takePhoto">
+            </div>
+        </div>
+    </nav>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-xs-12">
-                <h1>3D Scanner Camera Coordinator</h1>
-                <input type="button" id="takePhoto" value="Take Photo" class="btn btn-success"><br><br>
-            </div>
-        </div>
-        <div class="row" id="photoGrid">
-            <div class="col-xs-3">
-                <img src="/img/placeholder.png" id="newPhoto" class="thumbnail">
-            </div>
-            <div class="col-xs-3">
-                <img src="/img/placeholder.png" id="newPhoto" class="thumbnail">
-            </div>
-            <div class="col-xs-3">
-                <img src="/img/placeholder.png" id="newPhoto" class="thumbnail">
-            </div>
-            <div class="col-xs-3">
-                <img src="/img/placeholder.png" id="newPhoto" class="thumbnail">
+            <div class="col-xs-3" v-for="photo in photos">
+                <img :src="photo.imagePath" class="thumbnail">
+                <div class="caption">
+                    <h3>{{ photo.cameraName }}</h3>
+                </div>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-12">
-                Connected Cameras: <span id="cameraCount">0</span>
+                Connected Cameras: <span id="cameraCount">{{ cameras.length }}</span>
                 <table class="table">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>IP</th>
-                            <th>Photo Status</th>
                             <th>Last Checkin</th>
-                            <th>Error taking photo</th>
+                            <th>Photo Status</th>
+                            <th>Photo Error</th>
                             <th>Version</th>
+                            <th>New Name</th>
                         </tr>
                     </thead>
                     <tbody id="cameraList">
-
+                        <tr v-for="camera in cameras" v-bind:class="{ danger: camera.lastUpdateProblem }">
+                            <td>{{ camera.name }}</td>
+                            <td>{{ camera.ipAddress }}</td>
+                            <td>{{ camera.timeSinceLastUpdate }}</td>
+                            <td>{{ camera.photoStatus }}</td>
+                            <td>{{ camera.photoError }}</td>
+                            <td>{{ camera.version }}</td>
+                            <td><input type="text" name="deviceName" @keyup.enter="updateName(camera.socketId, $event)"></td>
+                        </tr>
                     </tbody>
                 </table>
-                <input type="button" id="updateSoftware" value="Update Software" class="btn btn-info">
+                <input type="button" value="Update Software" class="btn btn-info" v-on:click="updateSoftware">
             </div>
         </div>
     </div>
@@ -65,95 +80,7 @@
     <script src="/js/socket.io-1.4.5.js"></script>
     <script src="/js/jquery-3.1.1.slim.min.js"></script>
     <script src="/js/bootstrap.min.js"></script>
-
-    <script>
-        var clientId = guid();
-
-        var socket = io('http://' + location.hostname + ':3000');
-
-        var cameras = [];
-
-        $(document).ready(function() {
-
-            socket.emit('client-online', {});
-
-            $('#takePhoto').click(function (event) {
-                takeId = guid();
-                event.preventDefault();
-                socket.emit('take-photo', {takeId: takeId, time: Date.now()});
-
-                $('#photoGrid').html('');
-            });
-
-            $('#updateSoftware').click(function (event) {
-                event.preventDefault();
-                socket.emit('update-software', {});
-            });
-            
-            $( "#cameraList .changeCameraName" ).on( "click", function(event) {
-                event.preventDefault();
-                var newName = $(this).parent().find(".newCameraName").val();
-                console.log(newName);
-            });
-
-            socket.on('new-photo', function(data){
-                $('#photoGrid').append('<div class="col-xs-3"><img src="/' + data.imagePath + '" class="thumbnail"><br>' + data.cameraName + '</div>');
-            });
-
-            socket.on('photo-error', function(response){
-                console.log("photo error", response);
-            });
-
-            // A camera had come online or been taken offline
-            socket.on('camera-update', function(response){
-                //console.log("camera update", response);
-                cameras = response;
-
-                displayCameraList();
-            });
-        });
-
-        function displayCameraList() {
-            $('#cameraList').html('');
-            let cameraCount = 0;
-            for (let i = 0; i < cameras.length; i++) {
-                if (cameras[i].type == 'camera') {
-                    cameraCount++;
-                    var photoError = '';
-                    if (cameras[i].photoError) {
-                        photoError = 'yes';
-                    }
-                    let photoStatus = 'standby';
-                    if (cameras[i].waitingOnPhoto) {
-                        photoStatus = 'taking';
-                    }
-                    if (cameras[i].photoSending) {
-                        photoStatus = 'sending';
-                    }
-                    if (cameras[i].receivedPhoto) {
-                        photoStatus = 'received';
-                    }
-                    var timeSinceLastUpdate = Math.round((new Date() - new Date(cameras[i].lastCheckin)) / 100) / 10;
-                    if ((timeSinceLastUpdate > 10) && !cameras[i].photoSending) {
-                        timeSinceLastUpdate = '<b>' + timeSinceLastUpdate + '</b>';
-                    }
-                    $('#cameraList').append('<tr><td>'+cameras[i].name+'</td><td>'+cameras[i].ipAddress+'</td><td>'+photoStatus + '</td><td>' + timeSinceLastUpdate+'</td><td>'+photoError+'</td><td>'+cameras[i].version+'</td><td><input type="text" class="newCameraName"><input type="submit" value="Save" class="changeCameraName"></td></tr>');
-                }
-
-            }
-            $('#cameraCount').text(cameraCount);
-        }
-
-        function guid() {
-          function s4() {
-            return Math.floor((1 + Math.random()) * 0x10000)
-              .toString(16)
-              .substring(1);
-          }
-          return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
-        }
-    </script>
-
+    <script src="/js/front-end.js"></script>
+</div>
 </body>
 </html>
