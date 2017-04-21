@@ -1,5 +1,7 @@
 var express = require('express');
 var app = express();
+var multer  = require('multer')
+var upload = multer({ dest: 'uploads/' })
 
 var server = require('http').Server(app);
 
@@ -16,6 +18,39 @@ server.listen(3000);
 
 app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
+});
+
+
+app.post('/new-image', upload.single('image'), function (request, response) {
+    console.log("received a new image", request.body.socketId);
+    if (!request.file || !request.body.startTime) {
+        return;
+    }
+
+    request.body.takeId;
+
+    let folderName = getFolderName(request.body.startTime);
+    let imagePath  = './images/' + folderName + '/' + request.body.fileName;
+
+    var tmpPath = './' + request.file.path;
+
+    fs.rename(tmpPath, imagePath, function(err) {
+        if (err) throw err;
+
+        // The camera has been moved to the right place, update our data array to show this
+        var i = findCameraIndexByName(request.body.cameraName);
+        cameras[i].photoError     = false;
+        cameras[i].waitingOnPhoto = false;
+        cameras[i].photoSending   = false;
+        cameras[i].receivedPhoto  = true;
+        cameras[i].latestImage    = folderName + '/' + request.body.fileName;
+
+        fs.unlink(tmpPath, function() {
+            if (err) throw err;
+        });
+    });
+
+    response.sendStatus(201);
 });
 
 app.use(express.static('static'));
@@ -39,11 +74,13 @@ io.on('connection', function (socket) {
         name: null,
         ipAddress: null,
         photoError: false,
+        photoTaken: false,
         waitingOnPhoto: false,
         lastCheckin: null,
         photoSending: false,
         receivedPhoto: false,
-        version: null
+        version: null,
+        photoStatus: null
     });
 
 
@@ -94,6 +131,7 @@ io.on('connection', function (socket) {
         let folderName = './images/' + getFolderName(msg.time);
 
         fs.mkdirSync(folderName);
+        msg.socketId = socket.id;
         io.emit('take-photo', msg);
 
         for (let i = 0; i < cameras.length; i++) {
@@ -133,11 +171,20 @@ io.on('connection', function (socket) {
     socket.on('new-photo', function(msg){
         console.log("New photo data");
         var i = findCameraIndex(socket.id);
-        cameras[i].photoError     = false;
-        cameras[i].waitingOnPhoto = false;
-        cameras[i].photoSending   = false;
-        cameras[i].receivedPhoto  = true;
+        cameras[i].photoError = false;
+        cameras[i].photoTaken = true;
+        //cameras[i].waitingOnPhoto = false;
+        //cameras[i].photoSending   = false;
+        //cameras[i].receivedPhoto  = true;
 
+        let folderName = getFolderName(msg.startTime);
+
+        msg.cameraName = cameras[i].name;
+        msg.imagePath  = folderName + '/' + msg.fileName;
+
+        //io.emit('new-photo', msg);
+
+        /*
         // Where is the image to be saved
         let folderName = getFolderName(msg.startTime);
         let fileName   = guid() + '.jpg';
@@ -169,6 +216,7 @@ io.on('connection', function (socket) {
                 io.emit('new-photo', msg);
             }
         });
+        */
 
     });
 
@@ -188,7 +236,37 @@ io.on('connection', function (socket) {
 });
 
 function clientUpdate() {
+
+    // Generate a status message for the camera
+    for (let i = 0; i < cameras.length; i++) {
+        let photoStatus = 'standby';
+        if (cameras[i].waitingOnPhoto) {
+            photoStatus = 'taking';
+        }
+        if (cameras[i].photoSending) {
+            photoStatus = 'sending';
+        }
+        if (cameras[i].receivedPhoto) {
+            photoStatus = 'received';
+        }
+        cameras[i].photoStatus = photoStatus;
+    }
+
+
     io.emit('camera-update', cameras);
+
+    // See if any of the cameras have a new image
+    for (let i = 0; i < cameras.length; i++) {
+        if (cameras[i].receivedPhoto) {
+            cameras[i].receivedPhoto = false;
+
+            msg = {
+                cameraName: cameras[i].name,
+                imagePath: cameras[i].latestImage
+            }
+            io.emit('new-photo', msg);
+        }
+    }
 }
 
 
@@ -201,17 +279,24 @@ function findCameraIndex(socketId) {
     }
 }
 
+function findCameraIndexByName(name) {
+    for (let i = 0; i < cameras.length; i++) {
+        if (cameras[i].name === name) {
+            return i;
+        }
+    }
+}
+
 
 // Generate a folder name based on the timestamp
 function getFolderName(time) {
-    let date = new Date(time);
+    let date = new Date(Number(time));
     let dayOfWeek = ("0" + date.getDate()).slice(-2);
     let month = ("0" + (date.getMonth() + 1)).slice(-2);
     let hour = ("0" + (date.getHours() + 1)).slice(-2);
     let minute = ("0" + (date.getMinutes() + 1)).slice(-2);
     let seconds = ("0" + (date.getSeconds() + 1)).slice(-2);
     return date.getFullYear() + month + dayOfWeek + hour + minute + seconds;
-    //return './images/' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() + '-' + date.getDate() + '-' + (date.getMonth()+1) + '-' + date.getFullYear();
 }
 
 

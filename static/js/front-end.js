@@ -43,17 +43,6 @@ var app = new Vue({
                         photoError = 'yes';
                     }
                     response[i].photoError = photoError;
-                    let photoStatus = 'standby';
-                    if (response[i].waitingOnPhoto) {
-                        photoStatus = 'taking';
-                    }
-                    if (response[i].photoSending) {
-                        photoStatus = 'sending';
-                    }
-                    if (response[i].receivedPhoto) {
-                        photoStatus = 'received';
-                    }
-                    response[i].photoStatus = photoStatus;
                     lastUpdateProblem = false;
                     var timeSinceLastUpdate = Math.round((new Date() - new Date(response[i].lastCheckin)) / 100) / 10;
                     if ((timeSinceLastUpdate > 10) && !response[i].photoSending) {
