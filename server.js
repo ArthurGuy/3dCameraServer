@@ -89,10 +89,11 @@ io.on('connection', function (socket) {
 
         // Update our cache
         var i = findCameraIndex(socket.id);
-        cameras[i].type        = 'camera';
-        cameras[i].name        = msg.name;
-        cameras[i].ipAddress   = msg.ipAddress;
-        cameras[i].lastCheckin = new Date();
+        cameras[i].type             = 'camera';
+        cameras[i].name             = msg.name;
+        cameras[i].ipAddress        = msg.ipAddress;
+        cameras[i].lastCheckin      = new Date();
+        cameras[i].updateInProgress = msg.updateInProgress;
         if (msg.version) {
             cameras[i].version = msg.version;
         }
@@ -248,6 +249,9 @@ function clientUpdate() {
         }
         if (cameras[i].receivedPhoto) {
             photoStatus = 'received';
+        }
+        if (cameras[i].updateInProgress) {
+            photoStatus = 'updating-software';
         }
         cameras[i].photoStatus = photoStatus;
     }
