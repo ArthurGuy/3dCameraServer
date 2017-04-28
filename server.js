@@ -131,7 +131,9 @@ io.on('connection', function (socket) {
 
         let folderName = './images/' + getFolderName(msg.time);
 
-        fs.mkdirSync(folderName);
+        if (!fs.existsSync(folderName)) {
+            fs.mkdirSync(folderName);
+        }
         msg.socketId = socket.id;
         io.emit('take-photo', msg);
 
