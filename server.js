@@ -97,6 +97,11 @@ io.on('connection', function (socket) {
         if (msg.version) {
             cameras[i].version = msg.version;
         }
+        if (msg.hostName) {
+            cameras[i].hostName = msg.hostName;
+        } else {
+            cameras[i].hostName = null;
+        }
 
         //io.emit('camera-update', cameras);
     });
