@@ -27,6 +27,13 @@ var app = new Vue({
             }
         ]
     },
+    computed: {
+        orderedCameras: function () {
+            return this.cameras.sort(function(a, b){
+                return a.name > b.name;
+            });
+        }
+    },
     created: function () {
         this.socket = io('http://' + location.hostname + ':3000');
 
