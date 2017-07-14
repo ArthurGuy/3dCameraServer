@@ -30,7 +30,10 @@ var app = new Vue({
     computed: {
         orderedCameras: function () {
             return this.cameras.sort(function(a, b){
-                return a.name > b.name;
+                if (isNaN(a) || isNaN(b)) {
+                    return a.name > b.name;
+                }
+                return a - b;
             });
         }
     },
