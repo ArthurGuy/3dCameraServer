@@ -64,11 +64,14 @@ var app = new Vue({
         this.socket.on('photo-error', function(data){
             console.log(data);
         });
+        
+        this.socket.on('take-photo', function(data){
+            this.photos = [];
+        });
     },
     methods: {
         takePhoto: function () {
             takeId = guid();
-            this.photos = [];
             this.socket.emit('take-photo', {takeId: takeId, time: Date.now()});
         },
         updateSoftware: function () {
