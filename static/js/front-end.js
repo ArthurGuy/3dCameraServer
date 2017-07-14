@@ -31,7 +31,7 @@ var app = new Vue({
         orderedCameras: function () {
             return this.cameras.sort(function(a, b){
                 if (isNaN(a) || isNaN(b)) {
-                    return a.name > b.name;
+                    return -1;
                 }
                 return a - b;
             });
