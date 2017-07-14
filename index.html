@@ -60,7 +60,7 @@
                         </tr>
                     </thead>
                     <tbody id="cameraList">
-                        <tr v-for="camera in cameras" v-bind:class="{ danger: camera.lastUpdateProblem }">
+                        <tr v-for="camera in orderedCameras" v-bind:class="{ danger: camera.lastUpdateProblem }">
                             <td>{{ camera.name }}</td>
                             <td>{{ camera.ipAddress }}</td>
                             <td>{{ camera.timeSinceLastUpdate }}</td>
