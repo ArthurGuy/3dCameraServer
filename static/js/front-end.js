@@ -66,7 +66,7 @@ var app = new Vue({
         });
         
         this.socket.on('take-photo', function(data){
-            this.photos = [];
+            that.photos = [];
         });
     },
     methods: {
