@@ -58,3 +58,6 @@ The router should be a cable modem type, an ADSL router wont work as you will ne
 The routers DHCP range will need to be changed from the default so it will assign IP addresses in the range `192.168.10.1 - 192.168.10.255`.
 
 The server uses a fixed ip address which is how the cameras now where to send the photos. The easiest way to manage this is to use the fixed IP address allocation which all decent routers will support, you should setup your computers mac address to be assigned the IP address `192.168.10.100`. The routers help documents should provide some guidance setting this up.
+
+The prebuilt camera image that is supplied will try and connect to a wifi network with the name `3DScanner` using the password `poppykalayana` so if your using this image you should setup your router to use these details.
+
