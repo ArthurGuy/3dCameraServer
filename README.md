@@ -47,4 +47,4 @@ To simplify things you should setup your computers mac address on the router so 
 
 As the clients come online you will see the connection messages in the terminal window and in the browser window.
 
-When the clients have connected you can command them to take a photo by using the take photo button in the header, this will start the photo capture process and within 30 seconds they should have all sent the images back to your computer. These will be displayed in the browser and saved to a folder in the install directory. If you have followed this guide this folder will be called `3dCameraServer/images/` and will be in your home directory.
+When the clients have connected you can command them to take a photo by using the take photo button in the header, this will start the photo capture process and within 30 seconds they should have all sent the images back to your computer. These will be displayed in the browser and saved to a folder in the install directory. You can locate this by searching for the folder `3dCameraServer`.
