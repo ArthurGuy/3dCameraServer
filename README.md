@@ -2,22 +2,28 @@
 
 The scanner server software is a node application and as such requires nodejs, the clients also run node and connect to the server using websockets.
 
+At present this guide is for the Mac only but if your familer with the concepts you can transition this to other systems.
+
+This setup processes assumes a basic familarity with the terminal and running commands. If your not familier with the command line you should open up terminal by searching for the program Terminal, once this opens you can get everything running by entering the commands exactly as shown below.
+
 ## Setup
-Ensure you have node running you can check this by opening up a terminal window and typing 
+Ensure you have node running you can check this by opening up a Terminal window and typing 
 ```bash
 node -v
 ```
 If you don't have node installed it can be downloaded from [NodeJS](https://nodejs.org/).
 
 ### Download the files
-This repo needs to be checked out to a folder on your computer, this can be done using the following command.
+This repository needs to be downloaded out to a folder on your computer, this can be done using the following command.
 ```bash
 git clone https://github.com/ArthurGuy/3dCameraServer.git
 ```
 
+If you prefer you can also download the code as a zip file and unpack into a folder of your choice.
+
 ### Install the depeneencies
 
-Enter the folder and install the dependencies 
+You need to enter the new folder containing the downloaded code and install the dependencies.
 
 ```bash
 cd 3dCameraServer
@@ -39,3 +45,5 @@ If everything was successfull you will see the message `3D Camera app listening 
 The client software expects to connect to a server on the ip address `192.168.10.100`, if you aren't using a dedicated router with a fixed ip address allocation you will need t manually set this ip address for yourself.
 
 As the clients come online you will see the connection messages in the terminal window and in the browser window.
+
+When the clients have connected you can command them to take a photo by using the take photo button in the header, this will start the photo capture process and within 30 seconds they should have all sent the images back to your computer. These will be displayed in the browser and saved to a folder in the install directory.
