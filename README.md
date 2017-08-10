@@ -1,6 +1,6 @@
 # 3D Camera Server
 
-The scanner server software is a node application and as such requires nodejs, the clients also run node and connect to the server using websockets.
+The scanner server software is a node application and as such requires nodejs, [the clients](https://github.com/ArthurGuy/3dCamera) also run node and connect to the server using websockets.
 
 At present this guide is for the Mac only but if your familer with the concepts you can transition this to other systems.
 
