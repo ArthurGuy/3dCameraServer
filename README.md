@@ -48,3 +48,13 @@ To simplify things you should setup your computers mac address on the router so 
 As the clients come online you will see the connection messages in the terminal window and in the browser window.
 
 When the clients have connected you can command them to take a photo by using the take photo button in the header, this will start the photo capture process and within 30 seconds they should have all sent the images back to your computer. These will be displayed in the browser and saved to a folder in the install directory. You can locate this by searching for the folder `3dCameraServer`.
+
+
+## Setting up the router
+
+Having a dedicated router for the 3D scanner is the ideal option and will save you some hasle further down the line.
+
+The router should be a cable modem type, an ADSL router wont work as you will need to plug the routers WAN port into your existing router. This will keep the cameras contained but also allow them to connect to the internet to fetch software updates.
+The routers DHCP range will need to be changed from the default so it will assign IP addresses in the range `192.168.10.1 - 192.168.10.255`.
+
+The server uses a fixed ip address which is how the cameras now where to send the photos. The easiest way to manage this is to use the fixed IP address allocation which all decent routers will support, you should setup your computers mac address to be assigned the IP address `192.168.10.100`. The routers help documents should provide some guidance setting this up.
